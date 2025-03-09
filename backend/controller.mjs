@@ -1,7 +1,7 @@
-import 'dotenv/config';
 import express from 'express';
 import asyncHandler from 'express-async-handler';
-import { Exercise } from './model.mjs';
+import { createExercise, findExercises, findExerciseById,
+         updateExerciseById, deleteExerciseById, deleteExercises } from './model.mjs';
 
 const router = express.Router();
 
@@ -34,8 +34,7 @@ router.post('/exercises', asyncHandler(async (req, res) => {
     }
 
     try {
-        const exercise = new Exercise(req.body);
-        const createdExercise = await exercise.save();
+        const createdExercise = await createExercise(req.body);
         res.status(201).json(createdExercise);
     } catch (error) {
         handleMongooseErrors(error, res);
@@ -56,14 +55,14 @@ router.get('/exercises', asyncHandler(async (req, res) => {
         if (req.query[field]) filter[field] = Number(req.query[field]);
     });
 
-    const foundExercises = await Exercise.find(filter);
+    const foundExercises = await findExercises(filter);
     res.status(200).json(foundExercises);
 }));
 
 // GET Exercise by ID
 router.get('/exercises/:id', asyncHandler(async (req, res) => {
     try {
-        const exercise = await Exercise.findById(req.params.id);
+        const exercise = await findExerciseById(req.params.id);
 
         if (!exercise) {
             return res.status(404).json({ Error: "Not found" });
@@ -82,16 +81,9 @@ router.put('/exercises/:id', asyncHandler(async (req, res) => {
     }
 
     try {
-        // Validates the input using mongoose validation
-        const tempExercise = new Exercise(req.body);
-        await tempExercise.validate();
-        
-        // If validation passes, update the document
-        const updatedExercise = await Exercise.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }                     // Returns the updated document (rather than the pre-updated one) and runs validators
-        );
+        // We'll rely on the model function to validate the input
+        // since it includes runValidators:true
+        const updatedExercise = await updateExerciseById(req.params.id, req.body);
 
         if (!updatedExercise) {
             return res.status(404).json({ Error: "Not found" });
@@ -118,14 +110,14 @@ router.delete('/exercises', asyncHandler(async (req, res) => {
         return res.status(400).json({ Error: "Missing required query parameter." });
     }
 
-    const result = await Exercise.deleteMany(filter);
+    const result = await deleteExercises(filter);
     res.status(200).json({ deletedCount: result.deletedCount });
 }));
 
 // DELETE Exercise by ID
 router.delete('/exercises/:id', asyncHandler(async (req, res) => {
     try {
-        const result = await Exercise.findByIdAndDelete(req.params.id);
+        const result = await deleteExerciseById(req.params.id);
 
         if (!result) {
             return res.status(404).json({ Error: "Not found" });

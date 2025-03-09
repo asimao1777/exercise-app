@@ -12,7 +12,7 @@ const request = supertest(app);
 // Connect to the test database
 beforeAll(async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGODB_CONNECT_STRING);
   } catch (error) {
     console.error('Error connecting to the database:', error);
   }

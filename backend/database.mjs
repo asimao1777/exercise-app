@@ -1,13 +1,10 @@
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 
-
-// Loads the .env file into process.env
-dotenv.config();
+// Environment variables are already loaded in server.mjs
 
 export async function connect(){
 /**
- * Connect to MongoDB Atlas using MONGO_URI from the
+ * Connect to MongoDB Atlas using MONGODB_CONNECT_STRING from the
  * .env file. If successful, logs a message to the console.
  *
  * @param none
@@ -15,7 +12,7 @@ export async function connect(){
  */
 
     try{
-        await mongoose.connect(process.env.MONGO_URI);
+        await mongoose.connect(process.env.MONGODB_CONNECT_STRING);
         const {connection} = mongoose;
         connection.on('connected', () => {
             console.log('Successfully connected to MongoDB using Mongoose!');

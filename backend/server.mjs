@@ -4,7 +4,7 @@ import { connect } from './database.mjs';                      // Imports the da
 import exerciseRoutes from './controller.mjs';                  // Imports the application routes
 
 
-dotenv.config();                                                    // Loads environment variables from .env file so they are accessible in process.env
+dotenv.config();                                  // Loads environment variables from .env file in the same directory so they are accessible in process.env
 
 const app = express();                                            // Initializes the Express application
 app.use(express.json());                                         // Enables reading of data from the request body, parses JSON in every route that uses it (that's why it is in 'server.mjs' file).
