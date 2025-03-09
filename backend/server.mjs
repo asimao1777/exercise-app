@@ -1,7 +1,7 @@
 import express from 'express';                                   // Imports Express framework to create the server
 import dotenv from 'dotenv';                                      // Imports dotenv to load environment variables from a .env file into process.env
-import { connect } from '../database.mjs';                      // Imports the database connection function
-import exerciseRoutes from '../controller.mjs';                  // Imports the application routes
+import { connect } from './database.mjs';                      // Imports the database connection function
+import exerciseRoutes from './controller.mjs';                  // Imports the application routes
 
 
 dotenv.config();                                                    // Loads environment variables from .env file so they are accessible in process.env
