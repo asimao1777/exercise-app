@@ -9,8 +9,8 @@ const router = express.Router();
 const validateExerciseBody = (body) => {
     const requiredProps = ['name', 'reps', 'weight', 'unit', 'date'];
     const requestProps = Object.keys(body);
-    
-    // Check if request has exactly the required properties
+
+    // Checks if request has exactly the required properties
     return requestProps.length === 5 && requiredProps.every(prop => requestProps.includes(prop));
 };
 
@@ -25,12 +25,14 @@ const handleMongooseErrors = (error, res) => {
     throw error; // Rethrow other errors
 };
 
+// CRUD
+
 // CREATE new Exercise
 router.post('/exercises', asyncHandler(async (req, res) => {
     if (!validateExerciseBody(req.body)) {
         return res.status(400).json({ Error: "Invalid request" });
     }
-    
+
     try {
         const exercise = new Exercise(req.body);
         const createdExercise = await exercise.save();
@@ -43,13 +45,13 @@ router.post('/exercises', asyncHandler(async (req, res) => {
 // GET all or filtered Exercises
 router.get('/exercises', asyncHandler(async (req, res) => {
     const filter = {};
-    
-    // Apply filters if provided in query parameters
+
+    // Applies filters if provided in query parameters
     ['name', 'unit', 'date'].forEach(field => {
         if (req.query[field]) filter[field] = req.query[field];
     });
-    
-    // Handle numeric fields separately
+
+    // Handles numeric fields
     ['reps', 'weight'].forEach(field => {
         if (req.query[field]) filter[field] = Number(req.query[field]);
     });
@@ -62,11 +64,11 @@ router.get('/exercises', asyncHandler(async (req, res) => {
 router.get('/exercises/:id', asyncHandler(async (req, res) => {
     try {
         const exercise = await Exercise.findById(req.params.id);
-        
+
         if (!exercise) {
             return res.status(404).json({ Error: "Not found" });
         }
-        
+
         res.status(200).json(exercise);
     } catch (error) {
         handleMongooseErrors(error, res);
@@ -78,17 +80,17 @@ router.put('/exercises/:id', asyncHandler(async (req, res) => {
     if (!validateExerciseBody(req.body)) {
         return res.status(400).json({ Error: "Invalid request" });
     }
-    
+
     try {
-        // Validate the input using mongoose validation
+        // Validates the input using mongoose validation
         const tempExercise = new Exercise(req.body);
         await tempExercise.validate();
         
         // If validation passes, update the document
         const updatedExercise = await Exercise.findByIdAndUpdate(
-            req.params.id, 
-            req.body, 
-            { new: true, runValidators: true }
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }                     // Returns the updated document (rather than the pre-updated one) and runs validators
         );
 
         if (!updatedExercise) {
@@ -106,7 +108,7 @@ router.delete('/exercises', asyncHandler(async (req, res) => {
     const filter = {};
     const { name, reps, weight, unit, date } = req.query;
 
-    // Apply the first filter found
+    // Applies the first filter found
     if (name) filter.name = name;
     else if (reps) filter.reps = Number(reps);
     else if (weight) filter.weight = Number(weight);
