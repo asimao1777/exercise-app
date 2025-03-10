@@ -2,38 +2,102 @@ import supertest from 'supertest';
 import * as dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { app } from '../server.mjs';
-import { expect, test, describe, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { expect, test, describe, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
 
 // Load environment variables
 dotenv.config();
 
 const request = supertest(app);
+let mongoServer;
+
+// Helper function to ensure MongoDB connection is ready
+const ensureDbConnection = async () => {
+  // Set a timeout for connection establishment
+  const timeout = 10000; // 10 seconds
+  const start = Date.now();
+
+  while (Date.now() - start < timeout) {
+    if (mongoose.connection.readyState === 1) {
+      return true; // Connected
+    }
+    // Wait a bit before checking again
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  throw new Error('Database connection timeout');
+};
 
 // Connect to the test database
 beforeAll(async () => {
+  jest.setTimeout(30000); // Increase timeout for slower environments
+  
   try {
-    await mongoose.connect(process.env.MONGODB_CONNECT_STRING);
+    // Only connect if not already connected
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(process.env.MONGODB_CONNECT_STRING, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 10000 // Timeout for server selection
+      });
+      
+      // Wait for connection to be fully established
+      await ensureDbConnection();
+      console.log('Successfully connected to MongoDB');
+    }
   } catch (error) {
     console.error('Error connecting to the database:', error);
+    // Fail all tests if database connection fails
+    throw new Error(`Database connection failed: ${error.message}`);
   }
 });
 
 // Disconnect from the test database after all tests
 afterAll(async () => {
   try {
-    await mongoose.connection.dropCollection('exercises');
-    await mongoose.connection.close();
+    // Check if connection exists before attempting to drop and close
+    if (mongoose.connection.readyState !== 0) {
+      // Only try to drop if connected
+      if (mongoose.connection.readyState === 1) {
+        try {
+          await mongoose.connection.dropCollection('exercises');
+        } catch (err) {
+          // Collection might not exist, which is fine
+          if (err.code !== 26) {
+            console.error('Error dropping collection:', err);
+          }
+        }
+      }
+      await mongoose.connection.close();
+      console.log('Successfully disconnected from MongoDB');
+    }
   } catch (error) {
     console.error('Error disconnecting from the database:', error);
+    throw error; // Re-throw to make test failure obvious
   }
 });
 
 // Clear the collection before each test
 beforeEach(async () => {
   try {
+    // Ensure we're connected before attempting operations
+    await ensureDbConnection();
+    
+    // Now safe to delete documents
     await mongoose.connection.collection('exercises').deleteMany({});
+    console.log('Collection cleared successfully');
   } catch (error) {
     console.error('Error clearing the collection:', error);
+    throw error; // Re-throw to make test failure obvious
+  }
+});
+
+// Verify after each test that we can still connect to the database
+afterEach(async () => {
+  try {
+    // Confirm the connection is still active
+    await ensureDbConnection();
+  } catch (error) {
+    console.error('Database connection lost during test:', error);
+    throw error;
   }
 });
 

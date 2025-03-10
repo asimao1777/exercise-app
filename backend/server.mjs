@@ -21,7 +21,7 @@ const initServer = async (startServer = true) => {
       const PORT = process.env.PORT || 3000;                    // Defines the port, using the value from .env or defaulting to 3000
       
       app.listen(PORT, () => {
-        console.log(`\U0001F680 Server running on port ${PORT}...`);  // Start the Express server and listen on the defined port
+        console.log(`\u{1F680} Server running on port ${PORT}...`);  // Start the Express server and listen on the defined port
       });
     }
     return app;
