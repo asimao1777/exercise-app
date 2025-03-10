@@ -19,15 +19,29 @@ const CreateExercisePage = () => {
     name: '',
     reps: '',
     weight: '',
-    unit: 'kg',
+    unit: 'kgs',
     date: formattedDate
   };
 
   // Function to handle form submission
   const handleSubmit = async (formData) => {
     try {
-      // Send the data to the API
-      const response = await axios.post('/exercises', formData);
+      // Create a copy of the form data
+      const updatedFormData = { ...formData };
+      
+      // Convert date from YYYY-MM-DD to MM-DD-YY
+      if (updatedFormData.date) {
+        const dateParts = updatedFormData.date.split('-');
+        if (dateParts.length === 3) {
+          const year = dateParts[0].slice(-2); // Get last 2 digits of year
+          const month = dateParts[1];
+          const day = dateParts[2];
+          updatedFormData.date = `${month}-${day}-${year}`;
+        }
+      }
+      
+      // Send the data to the API with the converted date
+      const response = await axios.post('/exercises', updatedFormData);
       
       // If successful, show success message and redirect to home page
       if (response.status === 201) {

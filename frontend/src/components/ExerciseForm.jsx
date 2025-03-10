@@ -12,7 +12,7 @@ const ExerciseForm = ({ initialValues, onSubmit, submitButtonText }) => {
     name: '',
     reps: '',
     weight: '',
-    unit: 'kg',
+    unit: 'kgs',
     date: ''
   });
 
@@ -78,7 +78,7 @@ const ExerciseForm = ({ initialValues, onSubmit, submitButtonText }) => {
           onChange={handleChange}
           required
         >
-          <option value="kg">kg</option>
+          <option value="kgs">kgs</option>
           <option value="lbs">lbs</option>
           <option value="stone">stone</option>
         </select>

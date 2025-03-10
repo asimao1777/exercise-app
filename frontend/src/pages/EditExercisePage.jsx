@@ -23,8 +23,22 @@ const EditExercisePage = () => {
     try {
       setLoading(true);
       
+      // Create a copy of the form data
+      const updatedFormData = { ...formData };
+      
+      // Convert date from YYYY-MM-DD to MM-DD-YY
+      if (updatedFormData.date) {
+        const dateParts = updatedFormData.date.split('-');
+        if (dateParts.length === 3) {
+          const year = dateParts[0].slice(-2); // Get last 2 digits of year
+          const month = dateParts[1];
+          const day = dateParts[2];
+          updatedFormData.date = `${month}-${day}-${year}`;
+        }
+      }
+      
       // Send the updated data to the API
-      const response = await axios.put(`/exercises/${id}`, formData);
+      const response = await axios.put(`/exercises/${id}`, updatedFormData);
       
       // If successful, show success message and redirect to home page
       if (response.status === 200) {
